@@ -19,8 +19,8 @@
 
 Summary: 	Perl-compatible regular expression library
 Name:	 	pcre
-Version:	8.33
-Release:	%mkrel 2
+Version:	8.34
+Release:	%mkrel 1
 License: 	BSD-Style
 Group:  	File tools
 URL: 		http://www.pcre.org/
