@@ -19,18 +19,17 @@
 
 Summary: 	Perl-compatible regular expression library
 Name:	 	pcre
-Version:	8.34
-Release:	%mkrel 2
+Version:	8.35
+Release:	%mkrel 1
 License: 	BSD-Style
 Group:  	File tools
 URL: 		http://www.pcre.org/
-Source0:	http://downloads.sourceforge.net/pcre/%{name}-%{version}.tar.bz2
-Source1:	http://downloads.sourceforge.net/pcre/%{name}-%{version}.tar.bz2.sig
+Source0:	ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/%{name}-%{version}.tar.bz2
+Source1:	ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/%{name}-%{version}.tar.bz2.sig
 Requires: 	%{libname} = %{version}-%{release}
 BuildRequires:	automake
 Patch0:		pcre-0.6.5-fix-detect-into-kdelibs.patch
 Patch1:		pcre-linkage_fix.diff
-Patch2:		pcre-8.34-stack_guard.diff
 # from debian:
 Patch4:		pcre-pcreposix-glibc-conflict.patch
 
@@ -145,7 +144,6 @@ at by a link.
 %setup -q
 %patch0 -p1 -b .detect_into_kdelibs
 %patch1 -p0
-%patch2 -p1
 
 %if %{build_pcreposix_compat}
   # pcre-pcreposix-glibc-conflict patch below breaks compatibility,
