@@ -2,9 +2,9 @@
 %define pcrecpp_major 0
 %define pcreposix_major 1
 %define pcreposix_compat_major 0
-%define libname_orig	lib%{name}
-%define libname16_orig    lib%{name}16
-%define libname32_orig    lib%{name}32
+%define libname_orig lib%{name}
+%define libname16_orig lib%{name}16
+%define libname32_orig lib%{name}32
 %define libname	%mklibname pcre %{pcre_major}
 %define libname16 %mklibname pcre 16 %{pcrecpp_major}
 %define libname32 %mklibname pcre 32 %{pcrecpp_major}
@@ -14,24 +14,43 @@
 %define develname %mklibname -d pcre
 %define develcpp %mklibname -d pcrecpp
 %define develposix %mklibname -d pcreposix
+%define olddevelname %mklibname %{name} 0 -d
 
 %define build_pcreposix_compat 1
 
-Summary: 	Perl-compatible regular expression library
-Name:	 	pcre
+Summary:	Perl-compatible regular expression library
+Name:		pcre
 Version:	8.35
-Release:	%mkrel 1
-License: 	BSD-Style
-Group:  	File tools
-URL: 		http://www.pcre.org/
+Release:	%mkrel 2
+License:	BSD-Style
+Group:		File tools
+URL:		http://www.pcre.org/
 Source0:	ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/%{name}-%{version}.tar.bz2
 Source1:	ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/%{name}-%{version}.tar.bz2.sig
-Requires: 	%{libname} = %{version}-%{release}
+Requires:	%{libname} = %{version}-%{release}
 BuildRequires:	automake
 Patch0:		pcre-0.6.5-fix-detect-into-kdelibs.patch
-Patch1:		pcre-linkage_fix.diff
+Patch1:		pcre-8.33-linkage-fix.patch
 # from debian:
 Patch4:		pcre-pcreposix-glibc-conflict.patch
+# from fedora
+# upstream bug #1463
+Patch5:		pcre-8.35-Do-not-rely-on-wrapping-signed-integer-while-parsein.patch
+# upstream bug #1492
+Patch6:		pcre-8.35-Fix-bad-starting-data-when-char-with-more-than-one-o.patch
+# upstream bug #1493
+Patch7:		pcre-8.35-Fix-not-including-VT-in-starting-characters-for-s.patch
+# upstream bug #1494
+Patch8:		pcre-8.35-Fix-bad-compile-of-Qx-.-where-x-is-any-character.patch
+# upstream bug #1500
+Patch9:		pcre-8.35-Fix-empty-matching-possessive-zero-repeat-groups-bug.patch
+# upstream bug #1502
+Patch10:	pcre-8.35-Fixed-several-memory-leaks-in-pcregrep.patch
+# upstream bug #1503
+Patch11:	pcre-8.35-Fix-compiler-crash-misbehaviour-for-zero-repeated-gr.patch
+# upstream bug #1515
+Patch12:	pcre-8.35-Fix-compile-time-loop-for-recursive-reference-within.patch
+
 
 %description
 PCRE has its own native API, but a set of "wrapper" functions that are based on
@@ -50,27 +69,27 @@ Provides:	%{libname_orig} = %{version}-%{release}
 This package contains the shared library libpcre.
 
 %package -n %{libname16}
-Group:      System/Libraries
-Summary:    Perl-compatible regular expression library
-Requires(pre):  filesystem >= 2.1.9-18
-Provides:   %{libname16_orig} = %{version}-%{release}
+Group:		System/Libraries
+Summary:	Perl-compatible regular expression library
+Requires(pre):	filesystem >= 2.1.9-18
+Provides:	%{libname16_orig} = %{version}-%{release}
 Obsoletes:	%{_lib}pcre16_1 < %{version}-%{release}
 
 %description -n %{libname16}
 This package contains the shared library libpcre.
 
 %package -n %{libname32}
-Group:      System/Libraries
-Summary:    Perl-compatible regular expression library
-Requires(pre):  filesystem >= 2.1.9-18
-Provides:   %{libname32_orig} = %{version}-%{release}
+Group:		System/Libraries
+Summary:	Perl-compatible regular expression library
+Requires(pre):	filesystem >= 2.1.9-18
+Provides:	%{libname32_orig} = %{version}-%{release}
 Obsoletes:	%{_lib}pcre32_1 < %{version}-%{release}
 
 %description -n %{libname32}
 This package contains the shared library libpcre.
 
 %package -n	%{libnamecpp}
-Group:	 	System/Libraries
+Group:		System/Libraries
 Summary:	Perl-compatible regular expression library
 Conflicts:	%{_lib}pcre0 < 8.21-3
 
@@ -79,7 +98,7 @@ This package contains the shared library libpcrecpp.
 
 
 %package -n	%{libnameposix}
-Group:	 	System/Libraries
+Group:		System/Libraries
 Summary:	Perl-compatible regular expression library
 Conflicts:	%{_lib}pcre0 < 8.21-3
 
@@ -88,7 +107,7 @@ This package contains the shared library libpcreposix.
 
 
 %package -n	%{libnameposix_compat}
-Group:	 	System/Libraries
+Group:		System/Libraries
 Summary:	Perl-compatible regular expression library
 Conflicts:	%{_lib}pcre0 < 8.21-3
 
@@ -100,11 +119,11 @@ This package contains the shared library libpcreposix compat.
 Group:		Development/C
 Summary:	Headers and static lib for pcre development
 Requires:	%{libname} = %{version}-%{release}
-Requires:   %{libname16} = %{version}-%{release}
-Requires:   %{libname32} = %{version}-%{release}
+Requires:	%{libname16} = %{version}-%{release}
+Requires:	%{libname32} = %{version}-%{release}
 Provides:	%{libname_orig}-devel = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
-Obsoletes:	%mklibname pcre 0 -d
+Obsoletes:	%{olddevelname} < 8.21-3
 
 %description -n	%{develname}
 Install this package if you want do compile applications using the pcre
@@ -142,8 +161,16 @@ at by a link.
 
 %prep
 %setup -q
-%patch0 -p1 -b .detect_into_kdelibs
-%patch1 -p0
+%patch0 -p1 -b .detect-into-kdelibs
+%patch1 -p1 -b .linkage-fix
+%patch5 -p1 -b .do-not-rely
+%patch6 -p1 -b .bad-start
+%patch7 -p1 -b .vt-not-included
+%patch8 -p1 -b .bad-Qx-compile
+%patch9 -p1 -b .empty-matching
+%patch10 -p1 -b .memory-leaks
+%patch11 -p1 -b .zero-grs
+%patch12 -p1 -b .recurse-within
 
 %if %{build_pcreposix_compat}
   # pcre-pcreposix-glibc-conflict patch below breaks compatibility,
@@ -163,12 +190,12 @@ for i in $dirs; do
   mkdir -p m4
   autoreconf -fi
   %configure2_5x \
-  	--disable-static \
+	--disable-static \
 	--enable-utf \
 	--enable-unicode-properties \
-    --enable-pcre8 \
-    --enable-pcre16 \
-    --enable-pcre32 \
+	--enable-pcre8 \
+	--enable-pcre16 \
+	--enable-pcre32 \
 	--enable-jit
   %make
   cd -
@@ -176,11 +203,6 @@ done
 
 %check
 export LC_ALL=C
-# Tests, patch out actual pcre_study_size in expected results
-#echo 'int main() { printf("%d", sizeof(pcre_study_data)); return 0; }' | \
-#%{__cc} -xc - -include "pcre_internal.h" -I. -o study_size
-#STUDY_SIZE=`./study_size`
-#perl -pi -e "s,(Study size\s+=\s+)\d+,\${1}$STUDY_SIZE," testdata/testoutput*
 make check
 
 %install

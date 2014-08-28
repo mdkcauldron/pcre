@@ -1,0 +1,35 @@
+From 7e482d25c8898170cd550784e0811d90e4897cc8 Mon Sep 17 00:00:00 2001
+From: William Murphy <warrendiogenese@gmail.com>
+Date: Wed, 27 Aug 2014 19:56:12 -0700
+Subject: [PATCH] linkage fix
+
+---
+ Makefile.am | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 5f640b0..4db944e 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -493,7 +493,7 @@ EXTRA_DIST += RunTest.bat
+ bin_PROGRAMS += pcretest
+ pcretest_SOURCES = pcretest.c
+ pcretest_CFLAGS = $(AM_CFLAGS)
+-pcretest_LDADD = $(LIBREADLINE)
++pcretest_LDADD = libpcre.la libpcreposix.la $(LIBREADLINE)
+ if WITH_PCRE8
+ pcretest_SOURCES += pcre_printint.c
+ pcretest_LDADD += libpcre.la libpcreposix.la
+@@ -520,8 +520,7 @@ dist_noinst_SCRIPTS += RunGrepTest
+ bin_PROGRAMS += pcregrep
+ pcregrep_SOURCES = pcregrep.c
+ pcregrep_CFLAGS = $(AM_CFLAGS)
+-pcregrep_LDADD = $(LIBZ) $(LIBBZ2)
+-pcregrep_LDADD += libpcre.la libpcreposix.la
++pcregrep_LDADD = libpcre.la libpcreposix.la $(LIBZ) $(LIBBZ2)
+ if WITH_GCOV
+ pcregrep_CFLAGS += $(GCOV_CFLAGS)
+ pcregrep_LDADD += $(GCOV_LIBS)
+-- 
+1.8.4.5
+
