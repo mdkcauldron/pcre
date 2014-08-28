@@ -68,24 +68,24 @@ Provides:	%{libname_orig} = %{version}-%{release}
 %description -n	%{libname}
 This package contains the shared library libpcre.
 
-%package -n %{libname16}
+%package -n	%{libname16}
 Group:		System/Libraries
 Summary:	Perl-compatible regular expression library
 Requires(pre):	filesystem >= 2.1.9-18
 Provides:	%{libname16_orig} = %{version}-%{release}
 Obsoletes:	%{_lib}pcre16_1 < %{version}-%{release}
 
-%description -n %{libname16}
+%description -n	%{libname16}
 This package contains the shared library libpcre.
 
-%package -n %{libname32}
+%package -n	%{libname32}
 Group:		System/Libraries
 Summary:	Perl-compatible regular expression library
 Requires(pre):	filesystem >= 2.1.9-18
 Provides:	%{libname32_orig} = %{version}-%{release}
 Obsoletes:	%{_lib}pcre32_1 < %{version}-%{release}
 
-%description -n %{libname32}
+%description -n	%{libname32}
 This package contains the shared library libpcre.
 
 %package -n	%{libnamecpp}
@@ -129,7 +129,7 @@ Obsoletes:	%{olddevelname} < 8.21-3
 Install this package if you want do compile applications using the pcre
 library.
 
-%package -n %{develcpp}
+%package -n	%{develcpp}
 Group:		Development/C++
 Summary:	Headers and static lib for pcrecpp development
 Provides:	pcrecpp-devel = %{version}-%{release}
@@ -137,11 +137,11 @@ Requires:	%{libnamecpp} = %{version}-%{release}
 Requires:	%{develname} = %{version}-%{release}
 Conflicts:	pcre-devel < 8.32-4
 
-%description -n %{develcpp}
+%description -n	%{develcpp}
 Install this package if you want do compile applications using the pcrecpp
 library.
 
-%package -n %{develposix}
+%package -n	%{develposix}
 Group:		Development/C
 Summary:	Headers and static lib for pcreposix development
 Provides:	pcreposix-devel = %{version}-%{release}
@@ -149,7 +149,7 @@ Requires:	%{libnameposix} = %{version}-%{release}
 Requires:	%{develname} = %{version}-%{release}
 Conflicts:	pcre-devel < 8.32-4
 
-%description -n %{develposix}
+%description -n	%{develposix}
 Install this package if you want do compile applications using the pcre
 library.
 
