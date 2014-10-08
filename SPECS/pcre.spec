@@ -20,8 +20,8 @@
 
 Summary:	Perl-compatible regular expression library
 Name:		pcre
-Version:	8.35
-Release:	%mkrel 3
+Version:	8.36
+Release:	%mkrel 1
 License:	BSD-Style
 Group:		File tools
 URL:		http://www.pcre.org/
@@ -33,23 +33,6 @@ Patch0:		pcre-0.6.5-fix-detect-into-kdelibs.patch
 Patch1:		pcre-8.33-linkage-fix.patch
 # from debian:
 Patch4:		pcre-pcreposix-glibc-conflict.patch
-# from fedora
-# upstream bug #1463
-Patch5:		pcre-8.35-Do-not-rely-on-wrapping-signed-integer-while-parsein.patch
-# upstream bug #1492
-Patch6:		pcre-8.35-Fix-bad-starting-data-when-char-with-more-than-one-o.patch
-# upstream bug #1493
-Patch7:		pcre-8.35-Fix-not-including-VT-in-starting-characters-for-s.patch
-# upstream bug #1494
-Patch8:		pcre-8.35-Fix-bad-compile-of-Qx-.-where-x-is-any-character.patch
-# upstream bug #1500
-Patch9:		pcre-8.35-Fix-empty-matching-possessive-zero-repeat-groups-bug.patch
-# upstream bug #1502
-Patch10:	pcre-8.35-Fixed-several-memory-leaks-in-pcregrep.patch
-# upstream bug #1503
-Patch11:	pcre-8.35-Fix-compiler-crash-misbehaviour-for-zero-repeated-gr.patch
-# upstream bug #1515
-Patch12:	pcre-8.35-Fix-compile-time-loop-for-recursive-reference-within.patch
 
 
 %description
@@ -163,14 +146,6 @@ at by a link.
 %setup -q
 %patch0 -p1 -b .detect-into-kdelibs
 %patch1 -p1 -b .linkage-fix
-%patch5 -p1 -b .do-not-rely
-%patch6 -p1 -b .bad-start
-%patch7 -p1 -b .vt-not-included
-%patch8 -p1 -b .bad-Qx-compile
-%patch9 -p1 -b .empty-matching
-%patch10 -p1 -b .memory-leaks
-%patch11 -p1 -b .zero-grs
-%patch12 -p1 -b .recurse-within
 
 %if %{build_pcreposix_compat}
   # pcre-pcreposix-glibc-conflict patch below breaks compatibility,
