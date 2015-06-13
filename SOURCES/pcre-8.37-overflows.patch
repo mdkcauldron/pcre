@@ -1,0 +1,213 @@
+diff -urp pcre-8.37.orig/pcre_compile.c pcre-8.37/pcre_compile.c
+--- pcre-8.37.orig/pcre_compile.c	2015-04-13 11:54:01.000000000 -0400
++++ pcre-8.37/pcre_compile.c	2015-06-13 15:07:21.344510786 -0400
+@@ -1799,7 +1799,7 @@ for (;;)
+     case OP_ASSERTBACK:
+     case OP_ASSERTBACK_NOT:
+     do cc += GET(cc, 1); while (*cc == OP_ALT);
+-    cc += PRIV(OP_lengths)[*cc];
++    cc += 1 + LINK_SIZE;
+     break;
+ 
+     /* Skip over things that don't match chars */
+@@ -6769,7 +6769,7 @@ for (;; ptr++)
+             ptr++;
+             }
+           namelen = (int)(ptr - name);
+-          if (lengthptr != NULL) *lengthptr += IMM2_SIZE;
++          if (lengthptr != NULL) skipbytes += IMM2_SIZE;
+           }
+ 
+         /* Check the terminator */
+@@ -7173,14 +7173,26 @@ for (;; ptr++)
+           number. If the name is not found, set the value to 0 for a forward
+           reference. */
+ 
++          recno = 0;
+           ng = cd->named_groups;
+           for (i = 0; i < cd->names_found; i++, ng++)
+             {
+             if (namelen == ng->length &&
+                 STRNCMP_UC_UC(name, ng->name, namelen) == 0)
+-              break;
++              {
++              open_capitem *oc;
++              recno = ng->number;
++              if (is_recurse) break;
++              for (oc = cd->open_caps; oc != NULL; oc = oc->next)
++                {
++                if (oc->number == recno)
++                  {
++                  oc->flag = TRUE;
++                  break;
++                  }
++                }
++              }
+             }
+-          recno = (i < cd->names_found)? ng->number : 0;
+ 
+           /* Count named back references. */
+ 
+@@ -7191,6 +7203,19 @@ for (;; ptr++)
+           16-bit data item. */
+ 
+           *lengthptr += IMM2_SIZE;
++
++          /* If this is a forward reference and we are within a (?|...) group,
++          the reference may end up as the number of a group which we are
++          currently inside, that is, it could be a recursive reference. In the
++          real compile this will be picked up and the reference wrapped with
++          OP_ONCE to make it atomic, so we must space in case this occurs. */
++
++          /* In fact, this can happen for a non-forward reference because
++          another group with the same number might be created later. This
++          issue is fixed "properly" in PCRE2. As PCRE1 is now in maintenance
++          only mode, we finesse the bug by allowing more memory always. */
++
++          /* if (recno == 0) */ *lengthptr += 2 + 2*LINK_SIZE;
+           }
+ 
+         /* In the real compile, search the name table. We check the name
+@@ -7323,7 +7348,15 @@ for (;; ptr++)
+ 
+           recno = 0;
+           while(IS_DIGIT(*ptr))
++            {
++            if (recno > INT_MAX / 10 - 1) /* Integer overflow */            
++              {                                                             
++              while (IS_DIGIT(*ptr)) ptr++;                                 
++              *errorcodeptr = ERR61;                                        
++              goto FAILED;                                                  
++              }
+             recno = recno * 10 + *ptr++ - CHAR_0;
++            } 
+ 
+           if (*ptr != (pcre_uchar)terminator)
+             {
+diff -urp pcre-8.37.orig/pcre_exec.c pcre-8.37/pcre_exec.c
+--- pcre-8.37.orig/pcre_exec.c	2015-04-08 12:59:58.000000000 -0400
++++ pcre-8.37/pcre_exec.c	2015-06-13 15:07:37.584560377 -0400
+@@ -6685,7 +6685,8 @@ if (md->offset_vector != NULL)
+   register int *iend = iptr - re->top_bracket;
+   if (iend < md->offset_vector + 2) iend = md->offset_vector + 2;
+   while (--iptr >= iend) *iptr = -1;
+-  md->offset_vector[0] = md->offset_vector[1] = -1;
++  if (offsetcount > 0) md->offset_vector[0] = -1;
++  if (offsetcount > 1) md->offset_vector[1] = -1;
+   }
+ 
+ /* Set up the first character to match, if available. The first_char value is
+diff -urp pcre-8.37.orig/testdata/testinput1 pcre-8.37/testdata/testinput1
+--- pcre-8.37.orig/testdata/testinput1	2015-03-29 07:25:15.000000000 -0400
++++ pcre-8.37/testdata/testinput1	2015-06-13 15:10:02.994985765 -0400
+@@ -5730,4 +5730,7 @@ AbcdCBefgBhiBqz
+ "(?1)(?#?'){8}(a)"
+     baaaaaaaaac
+ 
++"(?|(\k'Pm')|(?'Pm'))"
++    abcd
++
+ /-- End of testinput1 --/
+diff -urp pcre-8.37.orig/testdata/testinput2 pcre-8.37/testdata/testinput2
+--- pcre-8.37.orig/testdata/testinput2	2015-04-13 05:36:15.000000000 -0400
++++ pcre-8.37/testdata/testinput2	2015-06-13 15:08:36.054734708 -0400
+@@ -4152,4 +4152,22 @@ backtracking verbs. --/
+ 
+ /((?2){73}(?2))((?1))/
+ 
++/(((?(R)){0,2}) (?''((?'R')((?'R')))))/J
++
++/(((?(X)){0,2}) (?''((?'X')((?'X')))))/J
++
++/(((?(R)){0,2}) (?''((?'X')((?'R')))))/
++
++"(?J)(?'d'(?'d'\g{d}))"
++
++".*?\h.+.\.+\R*?\xd(?i)(?=!(?=b`b`b`\`b\xa9b!)`\a`bbbbbbbbbbbbb`bbbbbbbbbbbb*R\x85bbbbbbb\C?{((?2)(?))((
++\H){8(?<=(?1){29}\xa8bbbb\x16\xd\xc6^($(?<! )(\xa9H4){4}h}1)B))\x15')"
++
++"(?J:(?|(?'R')(\k'R')|((?'R'))))"
++
++/(?<=|(\,\$(?73591620449005828816)\xa8.{7}){6}\x09)/
++
++//
++\O1
++
+ /-- End of testinput2 --/
+diff -urp pcre-8.37.orig/testdata/testoutput1 pcre-8.37/testdata/testoutput1
+--- pcre-8.37.orig/testdata/testoutput1	2015-03-29 07:25:26.000000000 -0400
++++ pcre-8.37/testdata/testoutput1	2015-06-13 15:10:41.015093667 -0400
+@@ -9429,4 +9429,9 @@ No match
+  0: aaaaaaaaa
+  1: a
+ 
++"(?|(\k'Pm')|(?'Pm'))"
++    abcd
++ 0: 
++ 1: 
++
+ /-- End of testinput1 --/
+diff -urp pcre-8.37.orig/testdata/testoutput11-16 pcre-8.37/testdata/testoutput11-16
+--- pcre-8.37.orig/testdata/testoutput11-16	2015-03-02 12:09:21.000000000 -0500
++++ pcre-8.37/testdata/testoutput11-16	2015-06-13 15:11:07.935169610 -0400
+@@ -231,7 +231,7 @@ Memory allocation (code space): 73
+ ------------------------------------------------------------------
+ 
+ /(?P<a>a)...(?P=a)bbb(?P>a)d/BM
+-Memory allocation (code space): 61
++Memory allocation (code space): 77
+ ------------------------------------------------------------------
+   0  24 Bra
+   2   5 CBra 1
+diff -urp pcre-8.37.orig/testdata/testoutput11-32 pcre-8.37/testdata/testoutput11-32
+--- pcre-8.37.orig/testdata/testoutput11-32	2015-03-02 12:09:30.000000000 -0500
++++ pcre-8.37/testdata/testoutput11-32	2015-06-13 15:11:25.475218926 -0400
+@@ -231,7 +231,7 @@ Memory allocation (code space): 155
+ ------------------------------------------------------------------
+ 
+ /(?P<a>a)...(?P=a)bbb(?P>a)d/BM
+-Memory allocation (code space): 125
++Memory allocation (code space): 157
+ ------------------------------------------------------------------
+   0  24 Bra
+   2   5 CBra 1
+diff -urp pcre-8.37.orig/testdata/testoutput11-8 pcre-8.37/testdata/testoutput11-8
+--- pcre-8.37.orig/testdata/testoutput11-8	2015-03-02 12:09:13.000000000 -0500
++++ pcre-8.37/testdata/testoutput11-8	2015-06-13 15:11:41.425263677 -0400
+@@ -231,7 +231,7 @@ Memory allocation (code space): 45
+ ------------------------------------------------------------------
+ 
+ /(?P<a>a)...(?P=a)bbb(?P>a)d/BM
+-Memory allocation (code space): 38
++Memory allocation (code space): 50
+ ------------------------------------------------------------------
+   0  30 Bra
+   3   7 CBra 1
+diff -urp pcre-8.37.orig/testdata/testoutput2 pcre-8.37/testdata/testoutput2
+--- pcre-8.37.orig/testdata/testoutput2	2015-04-13 05:36:27.000000000 -0400
++++ pcre-8.37/testdata/testoutput2	2015-06-13 15:09:30.764893523 -0400
+@@ -14423,4 +14423,24 @@ Failed: lookbehind assertion is not fixe
+ 
+ /((?2){73}(?2))((?1))/
+ 
++/(((?(R)){0,2}) (?''((?'R')((?'R')))))/J
++
++/(((?(X)){0,2}) (?''((?'X')((?'X')))))/J
++
++/(((?(R)){0,2}) (?''((?'X')((?'R')))))/
++
++"(?J)(?'d'(?'d'\g{d}))"
++
++".*?\h.+.\.+\R*?\xd(?i)(?=!(?=b`b`b`\`b\xa9b!)`\a`bbbbbbbbbbbbb`bbbbbbbbbbbb*R\x85bbbbbbb\C?{((?2)(?))((
++\H){8(?<=(?1){29}\xa8bbbb\x16\xd\xc6^($(?<! )(\xa9H4){4}h}1)B))\x15')"
++
++"(?J:(?|(?'R')(\k'R')|((?'R'))))"
++
++/(?<=|(\,\$(?73591620449005828816)\xa8.{7}){6}\x09)/
++Failed: number is too big at offset 32
++
++//
++\O1
++Matched, but too many substrings
++
+ /-- End of testinput2 --/
