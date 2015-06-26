@@ -21,7 +21,7 @@
 Summary:	Perl-compatible regular expression library
 Name:		pcre
 Version:	8.37
-Release:	%mkrel 2
+Release:	%mkrel 3
 License:	BSD-Style
 Group:		File tools
 URL:		http://www.pcre.org/
@@ -32,6 +32,7 @@ BuildRequires:	automake
 Patch0:		pcre-0.6.5-fix-detect-into-kdelibs.patch
 Patch1:		pcre-8.33-linkage-fix.patch
 Patch2:		pcre-8.37-overflows.patch
+Patch3:		pcre-9.37-CVE-2015-5073.patch
 # from debian:
 Patch4:		pcre-pcreposix-glibc-conflict.patch
 
@@ -148,6 +149,7 @@ at by a link.
 %patch0 -p1 -b .detect-into-kdelibs
 %patch1 -p1 -b .linkage-fix
 %patch2 -p1 -b .overflows
+%patch3 -p1 -b .CVE-2015-5073
 
 %if %{build_pcreposix_compat}
   # pcre-pcreposix-glibc-conflict patch below breaks compatibility,
