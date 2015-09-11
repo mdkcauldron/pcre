@@ -205,24 +205,24 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_bindir}/pcretest
 
 %files -n %{libname}
-%{_libdir}/libpcre.so.%{pcre_major}*
+%{_libdir}/libpcre.so.%{pcre_major}{,.*}
 
 %files -n %{libname16}
-%{_libdir}/libpcre16.so.%{pcrecpp_major}*
+%{_libdir}/libpcre16.so.%{pcrecpp_major}{,.*}
 
 %files -n %{libname32}
-%{_libdir}/libpcre32.so.%{pcrecpp_major}*
+%{_libdir}/libpcre32.so.%{pcrecpp_major}{,.*}
 
 %files -n %{libnamecpp}
-%{_libdir}/libpcrecpp.so.%{pcrecpp_major}*
+%{_libdir}/libpcrecpp.so.%{pcrecpp_major}{,.*}
 
 %if %{build_pcreposix_compat}
 %files -n %{libnameposix_compat}
-%{_libdir}/libpcreposix.so.%{pcreposix_compat_major}*
+%{_libdir}/libpcreposix.so.%{pcreposix_compat_major}{,.*}
 %endif
 
 %files -n %{libnameposix}
-%{_libdir}/libpcreposix.so.%{pcreposix_major}*
+%{_libdir}/libpcreposix.so.%{pcreposix_major}{,.*}
 
 %files -n %{develname}
 %doc doc/html
