@@ -77,9 +77,9 @@ index 38d1dba..d423f0f 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -20,7 +20,7 @@ m4_define(pcre_date, [2015-04-28])
- m4_define(libpcre_version, [3:5:2])
- m4_define(libpcre16_version, [2:5:2])
- m4_define(libpcre32_version, [0:5:0])
+ m4_define(libpcre_version, [3:6:2])
+ m4_define(libpcre16_version, [2:6:2])
+ m4_define(libpcre32_version, [0:6:0])
 -m4_define(libpcreposix_version, [0:3:0])
 +m4_define(libpcreposix_version, [1:0:0])
  m4_define(libpcrecpp_version, [0:1:0])
