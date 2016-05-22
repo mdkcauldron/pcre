@@ -12,6 +12,7 @@
 %define libnameposix %mklibname pcreposix %{pcreposix_major}
 %define libnameposix_compat %mklibname pcreposix %{pcreposix_compat_major}
 %define develname %mklibname -d pcre
+%define staticname %mklibname -s -d pcre
 %define develcpp %mklibname -d pcrecpp
 %define develposix %mklibname -d pcreposix
 %define olddevelname %mklibname %{name} 0 -d
@@ -21,7 +22,7 @@
 Summary:	Perl-compatible regular expression library
 Name:		pcre
 Version:	8.38
-Release:	%mkrel 2
+Release:	%mkrel 3
 License:	BSD-Style
 Group:		File tools
 URL:		http://www.pcre.org/
@@ -100,7 +101,7 @@ This package contains the shared library libpcreposix compat.
 
 %package -n	%{develname}
 Group:		Development/C
-Summary:	Headers and static lib for pcre development
+Summary:	Headers for pcre development
 Requires:	%{libname} = %{version}-%{release}
 Requires:	%{libname16} = %{version}-%{release}
 Requires:	%{libname32} = %{version}-%{release}
@@ -114,7 +115,7 @@ library.
 
 %package -n	%{develcpp}
 Group:		Development/C++
-Summary:	Headers and static lib for pcrecpp development
+Summary:	Headers for pcrecpp development
 Provides:	pcrecpp-devel = %{version}-%{release}
 Requires:	%{libnamecpp} = %{version}-%{release}
 Requires:	%{develname} = %{version}-%{release}
@@ -126,7 +127,7 @@ library.
 
 %package -n	%{develposix}
 Group:		Development/C
-Summary:	Headers and static lib for pcreposix development
+Summary:	Headers for pcreposix development
 Provides:	pcreposix-devel = %{version}-%{release}
 Requires:	%{libnameposix} = %{version}-%{release}
 Requires:	%{develname} = %{version}-%{release}
@@ -141,6 +142,15 @@ official POSIX name is regex.h, but I didn't want to risk possible problems
 with existing files of that name by distributing it that way. To use it with an
 existing program that uses the POSIX API, it will have to be renamed or pointed
 at by a link.
+
+%package -n	%{staticname}
+Group:		Development/C
+Summary:	Library file for linking statically to PCRE
+Provides:	pcre-static-devel = %{version}-%{release}
+Requires:	%{develname} = %{version}-%{release}
+
+%description -n	%{staticname}
+Library file for linking statically against PCRE.
 
 %prep
 %setup -q
@@ -165,7 +175,7 @@ for i in $dirs; do
   mkdir -p m4
   autoreconf -fi
   %configure2_5x \
-	--disable-static \
+	--enable-static \
 	--enable-utf \
 	--enable-unicode-properties \
 	--enable-pcre8 \
@@ -251,3 +261,6 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_libdir}/libpcreposix.so
 %{_libdir}/pkgconfig/libpcreposix.pc
 %{_mandir}/man3/pcreposix.3*
+
+%files -n %{staticname}
+%{_libdir}/*.a
